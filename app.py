@@ -2,53 +2,49 @@ import streamlit as st
 import joblib
 import pandas as pd
 import os
+import requests
 
-# Tentukan jalur absolut untuk file model
-model_path = os.path.join('/mount/src/uasmpml/STROKe', 'model.pkl')
-encoder_path = os.path.join('/mount/src/uasmpml/STROKe', 'label_encoders.pkl')
-print(f"Attempting to load model from: {model_path}")
-print(f"Attempting to load encoder from: {encoder_path}")
+# URLs to the files on GitHub
+MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/main/model.pkl"
+ENCODERS_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/main/label_encoders.pkl"
+MODEL_LOCAL_PATH = ""D:\kuliah\sem 4\MPML\STROKe\model.pkl""
+ENCODERS_LOCAL_PATH = ""D:\kuliah\sem 4\MPML\STROKe\label_encoders.pkl""
 
-# Tentukan jalur absolut untuk file model dan encoder
-model_path = '/mount/src/uasmpml/STROKe', 'model.pkl'
-encoder_path = '/mount/src/uasmpml/STROKe', 'label_encoders.pkl'
+def download_file(url, local_path):
+    response = requests.get(url)
+    with open(local_path, 'wb') as f:
+        f.write(response.content)
 
-# Memastikan model dan encoder ada
-if not os.path.isfile(model_path):
-    raise FileNotFoundError(f"Model file {model_path} does not exist.")
-if not os.path.isfile(encoder_path):
-    raise FileNotFoundError(f"Encoder file {encoder_path} does not exist.")
+# Download the model and encoders if not available locally
+if not os.path.isfile(MODEL_LOCAL_PATH):
+    st.write("Downloading model...")
+    download_file(MODEL_URL, MODEL_LOCAL_PATH)
+    st.write("Model download complete.")
 
-# Memuat model dan encoder
-model = joblib.load(model_path)
-label_encoders = joblib.load(encoder_path)
+if not os.path.isfile(ENCODERS_LOCAL_PATH):
+    st.write("Downloading label encoders...")
+    download_file(ENCODERS_URL, ENCODERS_LOCAL_PATH)
+    st.write("Label encoders download complete.")
+
+# Load the model and label encoders
+model = joblib.load(MODEL_LOCAL_PATH)
+label_encoders = joblib.load(ENCODERS_LOCAL_PATH)
 
 def preprocess_data(data):
-    # Mengubah data ke DataFrame
     df = pd.DataFrame([data])
-
-    # Encoding fitur kategorikal
     for feature, le in label_encoders.items():
         if feature in df.columns:
             df[feature] = le.transform(df[feature].astype(str))
-    
-    # Tambahkan kolom dummy jika model menggunakan kolom kategori yang sudah diencoding
     df = pd.get_dummies(df, columns=[
-        'gender', 'ever_married', 'work_type', 'Residence_type', 'smoking_status'
+        'gender', 'ever_married', 'work_type', 'residence_type', 'smoking_status'
     ], drop_first=True)
-    
-    # Pastikan urutan dan nama kolom sesuai dengan yang digunakan model
-    expected_columns = model.feature_names_in_  # Nama-nama fitur yang diharapkan model
+    expected_columns = model.feature_names_in_
     df = df.reindex(columns=expected_columns, fill_value=0)
-    
     return df
 
 def main():
     st.title('Stroke Prediction App')
-    
     st.write("Masukkan data pasien untuk prediksi stroke:")
-    
-    # Form input untuk data pasien
     gender = st.selectbox('Gender', ['Male', 'Female', 'Other'])
     age = st.number_input('Age', min_value=0)
     hypertension = st.selectbox('Hypertension', [0, 1])
@@ -63,7 +59,6 @@ def main():
     submit_button = st.button('Predict')
 
     if submit_button:
-        # Buat dictionary dari input
         data = {
             'gender': gender,
             'age': age,
@@ -71,19 +66,13 @@ def main():
             'heart_disease': heart_disease,
             'ever_married': ever_married,
             'work_type': work_type,
-            'Residence_type': residence_type,
+            'residence_type': residence_type,
             'avg_glucose_level': avg_glucose_level,
             'bmi': bmi,
             'smoking_status': smoking_status
         }
-        
-        # Preprocessing data
         df_preprocessed = preprocess_data(data)
-        
-        # Buat prediksi
         prediction = model.predict(df_preprocessed)[0]
-        
-        # Tampilkan hasil prediksi
         if prediction == 1:
             st.write("Predicted: Patient has a stroke.")
         else:
