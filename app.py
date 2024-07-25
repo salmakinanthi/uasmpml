@@ -4,8 +4,8 @@ import pandas as pd
 import os
 
 # Tentukan jalur absolut untuk file model dan encoder
-model_path = 'D:/kuliah/sem 4/MPML/STROKe/model.pkl'
-encoder_path = 'D:/kuliah/sem 4/MPML/STROKe/label_encoders.pkl'
+model_path = '/mount/src/uasmpml','model.pkl'
+encoder_path = '/mount/src/uasmpml','label_encoders.pkl'
 
 # Memastikan model dan encoder ada
 if not os.path.isfile(model_path):
