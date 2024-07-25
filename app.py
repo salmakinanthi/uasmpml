@@ -21,7 +21,7 @@ model_file = load_file_from_url(MODEL_URL)
 
 if model_file is not None:
     try:
-        model = joblib.load(model_file)
+        model, feature_names = joblib.load(model_file)
         st.write("Model loaded successfully.")
     except Exception as e:
         st.error(f"An error occurred while loading the model: {e}")
@@ -43,8 +43,7 @@ def preprocess_data(data):
     df = pd.get_dummies(df, columns=categorical_features, drop_first=True)
     
     # Ensure column order and names match what the model expects
-    expected_columns = model.feature_names_in_  
-    df = df.reindex(columns=expected_columns, fill_value=0)
+    df = df.reindex(columns=feature_names, fill_value=0)
     
     return df
 
