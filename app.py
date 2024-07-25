@@ -3,7 +3,6 @@ import joblib
 import requests
 import pandas as pd
 from io import BytesIO
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
 # URLs to the files on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/master/best_model.pkl"
@@ -36,31 +35,17 @@ def preprocess_data(data):
 
     # Convert data to DataFrame
     df = pd.DataFrame([data])
-
-    # Preprocess the data to match the training data
-    df["age_group"] = df["age"].apply(lambda x: "Infant" if (x >= 0) & (x <= 2) else (
-                                      "Child" if (x > 2) & (x <= 12) else (
-                                      "Adolescent" if (x > 12) & (x <= 18) else (
-                                      "Young Adults" if (x > 19) & (x <= 35) else (
-                                      "Middle Aged Adults" if (x > 35) & (x <= 60) else "Old Aged Adults")))))
     
-    # Label encoding for 'age_group'
-    encoder = LabelEncoder()
-    df["age_group"] = encoder.fit_transform(df["age_group"])
-
-    # Add dummy columns for categorical features
-    categorical_features = ['gender', 'ever_married', 'work_type', 'residence_type', 'smoking_status']
+    # Add dummy columns if the model uses encoded categorical columns
+    categorical_features = [
+        'gender', 'ever_married', 'work_type', 'residence_type', 'smoking_status'
+    ]
     df = pd.get_dummies(df, columns=categorical_features, drop_first=True)
     
     # Ensure column order and names match what the model expects
-    expected_columns = model.feature_names_in_
+    expected_columns = model.feature_names_in_  
     df = df.reindex(columns=expected_columns, fill_value=0)
-
-    # Normalisasi data menggunakan MinMaxScaler
-    scaler = MinMaxScaler()
-    for col in ['age', 'avg_glucose_level', 'bmi']:
-        df[col] = scaler.fit_transform(df[[col]])
-
+    
     return df
 
 def main():
@@ -69,7 +54,7 @@ def main():
     st.write("Masukkan data pasien untuk prediksi stroke:")
     
     # Form input for patient data
-    gender = st.selectbox('Gender', ['Male', 'Female'])
+    gender = st.selectbox('Gender', ['Male', 'Female', 'Other'])
     age = st.number_input('Age', min_value=0)
     hypertension = st.selectbox('Hypertension', [0, 1])
     heart_disease = st.selectbox('Heart Disease', [0, 1])
