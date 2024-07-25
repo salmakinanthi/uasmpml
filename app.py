@@ -1,6 +1,5 @@
 import streamlit as st
 import joblib
-import pandas as pd
 import os
 import requests
 
@@ -8,7 +7,7 @@ import requests
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/main/model.pkl"
 ENCODERS_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/main/label_encoders.pkl"
 
-# Jalur lokal untuk file yang diunduh
+# Local paths to downloaded files
 MODEL_LOCAL_PATH = "model.pkl"
 ENCODERS_LOCAL_PATH = "label_encoders.pkl"
 
