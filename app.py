@@ -3,9 +3,15 @@ import joblib
 import pandas as pd
 import os
 
+# Tentukan jalur absolut untuk file model
+model_path = os.path.join('/mount/src/uasmpml/STROKe', 'model.pkl')
+encoder_path = os.path.join('/mount/src/uasmpml/STROKe', 'label_encoders.pkl')
+print(f"Attempting to load model from: {model_path}")
+print(f"Attempting to load encoder from: {encoder_path}")
+
 # Tentukan jalur absolut untuk file model dan encoder
-model_path = '/mount/src/uasmpml','model.pkl'
-encoder_path = '/mount/src/uasmpml','label_encoders.pkl'
+model_path = '/mount/src/uasmpml/STROKe', 'model.pkl'
+encoder_path = '/mount/src/uasmpml/STROKe', 'label_encoders.pkl'
 
 # Memastikan model dan encoder ada
 if not os.path.isfile(model_path):
