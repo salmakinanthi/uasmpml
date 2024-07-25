@@ -34,6 +34,7 @@ if not os.path.isfile(ENCODERS_LOCAL_PATH):
     download_file(ENCODERS_URL, ENCODERS_LOCAL_PATH)
 
 # Load the model and label encoders
+label_encoders = {}
 try:
     model = joblib.load(MODEL_LOCAL_PATH)
     label_encoders = joblib.load(ENCODERS_LOCAL_PATH)
