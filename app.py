@@ -6,7 +6,6 @@ from io import BytesIO
 
 # URLs to the files on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/master/model.pkl"
-ENCODERS_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/master/label_encoders.pkl"
 
 def load_file_from_url(url):
     try:
@@ -17,33 +16,25 @@ def load_file_from_url(url):
         st.error(f"Error downloading file from {url}: {e}")
         return None
 
-# Load the model and label encoders directly from URL
+# Load the model directly from URL
 model_file = load_file_from_url(MODEL_URL)
-encoders_file = load_file_from_url(ENCODERS_URL)
 
-if model_file is not None and encoders_file is not None:
+if model_file is not None:
     try:
         model = joblib.load(model_file)
-        label_encoders = joblib.load(encoders_file)
-        st.write("Model and label encoders loaded successfully.")
+        st.write("Model loaded successfully.")
     except Exception as e:
-        st.error(f"An error occurred while loading the model or encoders: {e}")
+        st.error(f"An error occurred while loading the model: {e}")
 else:
     model = None
-    label_encoders = {}
 
 def preprocess_data(data):
-    if model is None or not label_encoders:
-        st.error("Model or label encoders not loaded.")
+    if model is None:
+        st.error("Model not loaded.")
         return pd.DataFrame()  # Return an empty DataFrame
 
     # Convert data to DataFrame
     df = pd.DataFrame([data])
-
-    # Encoding categorical features
-    for feature, le in label_encoders.items():
-        if feature in df.columns:
-            df[feature] = le.transform(df[feature].astype(str))
     
     # Add dummy columns if the model uses encoded categorical columns
     categorical_features = [
@@ -77,8 +68,8 @@ def main():
     submit_button = st.button('Predict')
 
     if submit_button:
-        if model is None or not label_encoders:
-            st.error("Model or label encoders are not properly loaded.")
+        if model is None:
+            st.error("Model is not properly loaded.")
             return
         
         # Create dictionary from input
