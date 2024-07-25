@@ -35,6 +35,7 @@ if not os.path.isfile(ENCODERS_LOCAL_PATH):
 
 # Load the model and label encoders
 label_encoders = {}
+model = None
 try:
     model = joblib.load(MODEL_LOCAL_PATH)
     label_encoders = joblib.load(ENCODERS_LOCAL_PATH)
@@ -47,6 +48,10 @@ except Exception as e:
     st.error(f"An unexpected error occurred: {e}")
 
 def preprocess_data(data):
+    if model is None or not label_encoders:
+        st.error("Model or label encoders not loaded.")
+        return pd.DataFrame()  # Return an empty DataFrame
+
     # Mengubah data ke DataFrame
     df = pd.DataFrame([data])
 
@@ -87,6 +92,10 @@ def main():
     submit_button = st.button('Predict')
 
     if submit_button:
+        if model is None or not label_encoders:
+            st.error("Model or label encoders are not properly loaded.")
+            return
+        
         # Buat dictionary dari input
         data = {
             'gender': gender,
