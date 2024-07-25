@@ -3,6 +3,7 @@ import joblib
 import requests
 import pandas as pd
 from io import BytesIO
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
 # URLs to the files on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/master/model.pkl"
@@ -25,7 +26,6 @@ if model_file is not None:
         st.write("Model loaded successfully.")
     except Exception as e:
         st.error(f"An error occurred while loading the model: {e}")
-        model = None
 else:
     model = None
 
@@ -36,22 +36,31 @@ def preprocess_data(data):
 
     # Convert data to DataFrame
     df = pd.DataFrame([data])
+
+    # Preprocess the data to match the training data
+    df["age_group"] = df["age"].apply(lambda x: "Infant" if (x >= 0) & (x <= 2) else (
+                                      "Child" if (x > 2) & (x <= 12) else (
+                                      "Adolescent" if (x > 12) & (x <= 18) else (
+                                      "Young Adults" if (x > 19) & (x <= 35) else (
+                                      "Middle Aged Adults" if (x > 35) & (x <= 60) else "Old Aged Adults")))))
     
-    # Encode categorical features
-    categorical_features = [
-        'gender', 'ever_married', 'work_type', 'residence_type', 'smoking_status'
-    ]
+    # Label encoding for 'age_group'
+    encoder = LabelEncoder()
+    df["age_group"] = encoder.fit_transform(df["age_group"])
+
+    # Add dummy columns for categorical features
+    categorical_features = ['gender', 'ever_married', 'work_type', 'residence_type', 'smoking_status']
     df = pd.get_dummies(df, columns=categorical_features, drop_first=True)
     
     # Ensure column order and names match what the model expects
-    expected_columns = model.feature_names_in_  # Feature names expected by the model
+    expected_columns = model.feature_names_in_
     df = df.reindex(columns=expected_columns, fill_value=0)
-    
-    # Normalize numeric features
-    numeric_features = ['age', 'avg_glucose_level', 'bmi']
-    for col in numeric_features:
-        df[col] = (df[col] - df[col].min()) / (df[col].max() - df[col].min())
-    
+
+    # Normalisasi data menggunakan MinMaxScaler
+    scaler = MinMaxScaler()
+    for col in ['age', 'avg_glucose_level', 'bmi']:
+        df[col] = scaler.fit_transform(df[[col]])
+
     return df
 
 def main():
