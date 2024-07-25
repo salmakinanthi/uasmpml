@@ -5,7 +5,7 @@ import pandas as pd
 from io import BytesIO
 
 # URLs to the files on GitHub
-MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/master/app.py"
+MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/master/model.pkl"
 ENCODERS_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/master/label_encoders.pkl"
 
 def load_file_from_url(url):
