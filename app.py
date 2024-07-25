@@ -2,6 +2,7 @@ import streamlit as st
 import joblib
 import os
 import requests
+import pandas as pd
 
 # URLs to the files on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/main/model.pkl"
@@ -54,9 +55,10 @@ def preprocess_data(data):
             df[feature] = le.transform(df[feature].astype(str))
     
     # Tambahkan kolom dummy jika model menggunakan kolom kategori yang sudah diencoding
-    df = pd.get_dummies(df, columns=[
+    categorical_features = [
         'gender', 'ever_married', 'work_type', 'residence_type', 'smoking_status'
-    ], drop_first=True)
+    ]
+    df = pd.get_dummies(df, columns=categorical_features, drop_first=True)
     
     # Pastikan urutan dan nama kolom sesuai dengan yang digunakan model
     expected_columns = model.feature_names_in_  # Nama-nama fitur yang diharapkan model
@@ -99,16 +101,20 @@ def main():
         }
         
         # Preprocessing data
-        df_preprocessed = preprocess_data(data)
+        try:
+            df_preprocessed = preprocess_data(data)
+            
+            # Buat prediksi
+            prediction = model.predict(df_preprocessed)[0]
+            
+            # Tampilkan hasil prediksi
+            if prediction == 1:
+                st.write("Predicted: Patient has a stroke.")
+            else:
+                st.write("Predicted: Patient does not have a stroke.")
         
-        # Buat prediksi
-        prediction = model.predict(df_preprocessed)[0]
-        
-        # Tampilkan hasil prediksi
-        if prediction == 1:
-            st.write("Predicted: Patient has a stroke.")
-        else:
-            st.write("Predicted: Patient does not have a stroke.")
+        except Exception as e:
+            st.error(f"Error in prediction: {e}")
 
 if __name__ == "__main__":
     main()
