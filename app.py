@@ -25,6 +25,7 @@ if model_file is not None:
         st.write("Model loaded successfully.")
     except Exception as e:
         st.error(f"An error occurred while loading the model: {e}")
+        model = None
 else:
     model = None
 
@@ -36,7 +37,7 @@ def preprocess_data(data):
     # Convert data to DataFrame
     df = pd.DataFrame([data])
     
-    # Add dummy columns if the model uses encoded categorical columns
+    # Encode categorical features
     categorical_features = [
         'gender', 'ever_married', 'work_type', 'residence_type', 'smoking_status'
     ]
@@ -46,6 +47,11 @@ def preprocess_data(data):
     expected_columns = model.feature_names_in_  # Feature names expected by the model
     df = df.reindex(columns=expected_columns, fill_value=0)
     
+    # Normalize numeric features
+    numeric_features = ['age', 'avg_glucose_level', 'bmi']
+    for col in numeric_features:
+        df[col] = (df[col] - df[col].min()) / (df[col].max() - df[col].min())
+    
     return df
 
 def main():
@@ -54,7 +60,7 @@ def main():
     st.write("Masukkan data pasien untuk prediksi stroke:")
     
     # Form input for patient data
-    gender = st.selectbox('Gender', ['Male', 'Female', 'Other'])
+    gender = st.selectbox('Gender', ['Male', 'Female'])
     age = st.number_input('Age', min_value=0)
     hypertension = st.selectbox('Hypertension', [0, 1])
     heart_disease = st.selectbox('Heart Disease', [0, 1])
