@@ -1,73 +1,58 @@
 import streamlit as st
 import joblib
-import os
 import requests
 import pandas as pd
+from io import BytesIO
 
 # URLs to the files on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/main/model.pkl"
 ENCODERS_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/main/label_encoders.pkl"
 
-# Local paths to downloaded files
-MODEL_LOCAL_PATH = "model.pkl"
-ENCODERS_LOCAL_PATH = "label_encoders.pkl"
-
-def download_file(url, local_path):
+def load_file_from_url(url):
     try:
         response = requests.get(url)
         response.raise_for_status()  # Raise an HTTPError for bad responses
-        with open(local_path, 'wb') as f:
-            f.write(response.content)
-        st.write(f"Successfully downloaded {local_path}")
+        return BytesIO(response.content)
     except requests.exceptions.RequestException as e:
-        st.error(f"Error downloading {local_path}: {e}")
-    except IOError as e:
-        st.error(f"Error saving {local_path}: {e}")
+        st.error(f"Error downloading file from {url}: {e}")
+        return None
 
-# Download the model and encoders if not available locally
-if not os.path.isfile(MODEL_LOCAL_PATH):
-    st.write("Downloading model...")
-    download_file(MODEL_URL, MODEL_LOCAL_PATH)
+# Load the model and label encoders directly from URL
+model_file = load_file_from_url(MODEL_URL)
+encoders_file = load_file_from_url(ENCODERS_URL)
 
-if not os.path.isfile(ENCODERS_LOCAL_PATH):
-    st.write("Downloading label encoders...")
-    download_file(ENCODERS_URL, ENCODERS_LOCAL_PATH)
-
-# Load the model and label encoders
-label_encoders = {}
-model = None
-try:
-    model = joblib.load(MODEL_LOCAL_PATH)
-    label_encoders = joblib.load(ENCODERS_LOCAL_PATH)
-    st.write("Model and label encoders loaded successfully.")
-except FileNotFoundError as e:
-    st.error(f"File not found: {e}")
-except joblib.externals.loky.process_executor.BrokenProcessPool as e:
-    st.error(f"Error loading model: {e}")
-except Exception as e:
-    st.error(f"An unexpected error occurred: {e}")
+if model_file is not None and encoders_file is not None:
+    try:
+        model = joblib.load(model_file)
+        label_encoders = joblib.load(encoders_file)
+        st.write("Model and label encoders loaded successfully.")
+    except Exception as e:
+        st.error(f"An error occurred while loading the model or encoders: {e}")
+else:
+    model = None
+    label_encoders = {}
 
 def preprocess_data(data):
     if model is None or not label_encoders:
         st.error("Model or label encoders not loaded.")
         return pd.DataFrame()  # Return an empty DataFrame
 
-    # Mengubah data ke DataFrame
+    # Convert data to DataFrame
     df = pd.DataFrame([data])
 
-    # Encoding fitur kategorikal
+    # Encoding categorical features
     for feature, le in label_encoders.items():
         if feature in df.columns:
             df[feature] = le.transform(df[feature].astype(str))
     
-    # Tambahkan kolom dummy jika model menggunakan kolom kategori yang sudah diencoding
+    # Add dummy columns if the model uses encoded categorical columns
     categorical_features = [
         'gender', 'ever_married', 'work_type', 'residence_type', 'smoking_status'
     ]
     df = pd.get_dummies(df, columns=categorical_features, drop_first=True)
     
-    # Pastikan urutan dan nama kolom sesuai dengan yang digunakan model
-    expected_columns = model.feature_names_in_  # Nama-nama fitur yang diharapkan model
+    # Ensure column order and names match what the model expects
+    expected_columns = model.feature_names_in_  # Feature names expected by the model
     df = df.reindex(columns=expected_columns, fill_value=0)
     
     return df
@@ -77,7 +62,7 @@ def main():
     
     st.write("Masukkan data pasien untuk prediksi stroke:")
     
-    # Form input untuk data pasien
+    # Form input for patient data
     gender = st.selectbox('Gender', ['Male', 'Female', 'Other'])
     age = st.number_input('Age', min_value=0)
     hypertension = st.selectbox('Hypertension', [0, 1])
@@ -96,7 +81,7 @@ def main():
             st.error("Model or label encoders are not properly loaded.")
             return
         
-        # Buat dictionary dari input
+        # Create dictionary from input
         data = {
             'gender': gender,
             'age': age,
@@ -110,14 +95,14 @@ def main():
             'smoking_status': smoking_status
         }
         
-        # Preprocessing data
+        # Preprocess data
         try:
             df_preprocessed = preprocess_data(data)
             
-            # Buat prediksi
+            # Make prediction
             prediction = model.predict(df_preprocessed)[0]
             
-            # Tampilkan hasil prediksi
+            # Display result
             if prediction == 1:
                 st.write("Predicted: Patient has a stroke.")
             else:
