@@ -38,9 +38,9 @@ def preprocess_data(data):
     
     # Add dummy columns if the model uses encoded categorical columns
     categorical_features = [
-        'gender', 'ever_married', 'work_type', 'residence_type', 'smoking_status'
+        'gender', 'ever_married', 'work_type', 'Residence_type', 'smoking_status'
     ]
-    df = pd.get_dummies(df, columns=categorical_features, drop_first=True)
+    df = pd.get_dummies(df, columns=categorical_features)
     
     # Ensure column order and names match what the model expects
     df = df.reindex(columns=feature_names, fill_value=0)
@@ -53,13 +53,13 @@ def main():
     st.write("Masukkan data pasien untuk prediksi stroke:")
     
     # Form input for patient data
-    gender = st.selectbox('Gender', ['Male', 'Female', 'Other'])
+    gender = st.selectbox('Gender', ['Male', 'Female'])
     age = st.number_input('Age', min_value=0)
     hypertension = st.selectbox('Hypertension', [0, 1])
     heart_disease = st.selectbox('Heart Disease', [0, 1])
     ever_married = st.selectbox('Ever Married', ['No', 'Yes'])
     work_type = st.selectbox('Work Type', ['children', 'Govt_job', 'Never_worked', 'Private', 'Self-employed'])
-    residence_type = st.selectbox('Residence Type', ['Rural', 'Urban'])
+    Residence_type = st.selectbox('Residence Type', ['Rural', 'Urban'])
     avg_glucose_level = st.number_input('Average Glucose Level', min_value=0.0)
     bmi = st.number_input('BMI', min_value=0.0)
     smoking_status = st.selectbox('Smoking Status', ['formerly smoked', 'never smoked', 'smokes', 'Unknown'])
@@ -79,7 +79,7 @@ def main():
             'heart_disease': heart_disease,
             'ever_married': ever_married,
             'work_type': work_type,
-            'residence_type': residence_type,
+            'Residence_type': Residence_type,
             'avg_glucose_level': avg_glucose_level,
             'bmi': bmi,
             'smoking_status': smoking_status
