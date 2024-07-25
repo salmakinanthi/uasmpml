@@ -6,7 +6,7 @@ from io import BytesIO
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 
 # URLs to the files on GitHub
-MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/master/model.pkl"
+MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/master/best_model.pkl"
 
 def load_file_from_url(url):
     try:
