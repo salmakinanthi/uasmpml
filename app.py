@@ -7,8 +7,8 @@ import requests
 # URLs to the files on GitHub
 MODEL_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/main/model.pkl"
 ENCODERS_URL = "https://raw.githubusercontent.com/salmakinanthi/uasmpml/main/label_encoders.pkl"
-MODEL_LOCAL_PATH = ""D:\kuliah\sem 4\MPML\STROKe\model.pkl""
-ENCODERS_LOCAL_PATH = ""D:\kuliah\sem 4\MPML\STROKe\label_encoders.pkl""
+MODEL_LOCAL_PATH = "D:/kuliah/sem 4/MPML/STROKe/model.pkl"
+ENCODERS_LOCAL_PATH = "D:/kuliah/sem 4/MPML/STROKe/label_encoders.pkl"
 
 def download_file(url, local_path):
     response = requests.get(url)
